@@ -30,7 +30,7 @@
 API_KEY="your_api_key_here"
 
 # 🌐 代理服务地址
-OPEN_AI_URL="tbai.xin/v1"
+OPEN_AI_URL="不带https://的地址/v1"
 
 # 🤖 模型名称
 OPEN_MODEL="gemini-1.5-pro"
