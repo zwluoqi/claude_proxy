@@ -1,90 +1,125 @@
-# Claude Code 代理配置工具
 
-[![Shell Script](https://img.shields.io/badge/Shell-Script-green.svg)](https://www.gnu.org/software/bash/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+# Claude-to-OpenAI API 代理
 
-> 🚀 一键配置 Claude Code 命令行工具，通过代理服务访问大语言模型
+这是一个部署在 Cloudflare Workers 上的 TypeScript 项目，它充当一个代理服务器，能够将 [Claude API](https://docs.anthropic.com/claude/reference/messages_post) 格式的请求转换为 [OpenAI API](https://platform.openai.com/docs/api-reference/chat/create) 格式。这使得任何与 Claude API 兼容的客户端（例如 [Claude Code CLI](https://www.npmjs.com/package/@anthropic-ai/claude-code)）都能够与任何支持 OpenAI API 格式的服务进行通信。
 
-## 📋 功能特性
+## ✨ 功能特性
 
-- ✅ **自动安装检查** - 检查并安装 Claude Code 工具
-- ⚙️ **智能配置** - 自动配置 `~/.claude/settings.json` 文件
-- 🔧 **多种更新方式** - 支持 `jq` 或 `python3` 更新 JSON 配置
-- 💾 **安全备份** - 更新前自动备份原配置文件
-- 🌐 **代理支持** - 设置代理 API 地址和密钥
+- **动态路由**: 无需修改代码，即可将请求代理到任意 OpenAI 兼容的 API 端点。API 的目标地址和模型名称可以直接在请求 URL 中指定。
+- **Claude API 兼容**: 完全支持 `/v1/messages` 端点，包括流式响应和非流式响应。
+- **Tool Calling (函数调用)转换**: 自动将 Claude 的 `tools` 格式转换为 OpenAI 的格式，并对 `input_schema` 进行清理，以确保与 Google Gemini 等严格的 API 兼容。
+- **Haiku 模型快捷方式**: 通过环境变量，为特定的 "Haiku" 模型配置了固定的路由，方便快速调用。
+- **简易配置脚本**: 提供 `claude_proxy.sh` 脚本，帮助用户一键配置本地的 Claude Code CLI，以使用此代理。
+- **轻松部署**: 可以一键部署到 Cloudflare Workers 全球网络。
 
-## 🛠️ 系统要求
+## 🚀 工作原理
 
-- **Node.js** 和 **npm** (用于安装 Claude Code)
-- **Bash** 环境
-- **jq** 或 **python3** (可选，用于 JSON 处理)
+### 动态路由
 
-## 🚀 快速开始
+本代理最核心的功能是动态路由。你可以在客户端（如 Claude Code CLI）发起的请求 URL 中直接嵌入目标 API 的地址和模型名称。
 
-### 1. 配置参数
+URL 格式如下:
+```
+https://<你的-worker-域名>/<协议>/<目标API域名>/<路径>/<模型名称>/v1/messages
+```
 
-打开脚本文件 `claude_proxy.sh`，找到 **"重点: 需要替换的内容"** 部分，修改以下变量：
+**示例**:
+
+假设你的 Worker 部署在 `my-proxy.workers.dev`。你想通过 Groq API 使用 `llama3-70b-8192` 模型，你可以将 Claude Code 的 `ANTHROPIC_BASE_URL` 设置为：
+
+```
+https://my-proxy.workers.dev/https/api.groq.com/openai/v1/llama3-70b-8192
+```
+*（注意：URL 的末尾不需要 `/v1/messages`，代理会自动处理。）*
+
+当一个请求发送到这个地址时，代理会：
+1.  解析 URL，提取出目标 Base URL: `https://api.groq.com/openai/v1`。
+2.  解析出模型名称: `llama3-70b-8192`。
+3.  将请求头中的 `x-api-key` 作为 `Authorization: Bearer <key>` 转发给目标 API。
+4.  将 Claude 格式的请求体转换为 OpenAI 格式，然后发送到 `https://api.groq.com/openai/v1/chat/completions`。
+5.  将收到的 OpenAI 格式响应转换回 Claude 格式，并返回给客户端。
+
+## 部署到 Cloudflare
+
+### 步骤 1: 安装 Wrangler CLI
+
+[Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/) 是 Cloudflare 的官方命令行工具，用于管理 Workers 项目。
 
 ```bash
-# 🔑 API 密钥
-API_KEY="your_api_key_here"
-
-# 🌐 代理服务地址
-OPEN_AI_URL="不带https://的地址/v1"
-
-# 🤖 模型名称
-OPEN_MODEL="gemini-1.5-pro"
+npm install -g wrangler
 ```
 
-### 2. 运行脚本
+### 步骤 2: 配置 `wrangler.toml`
+
+`wrangler.toml` 是项目的配置文件。你可以根据需要修改其中的 `[vars]` 部分，为 "Haiku" 模型设置一个备用或默认的 API 端点。
+
+```toml
+# wrangler.toml
+
+# ... (其他配置)
+
+[vars]
+# 当请求的模型名称包含 "haiku" 时，将使用以下配置
+HAIKU_MODEL_NAME = "gpt-4o-mini" # 目标模型名称
+HAIKU_BASE_URL   = "https://api.your-provider.com/v1" # 目标 API 地址
+HAIKU_API_KEY    = "sk-your-secret-key" # 目标 API 的密钥
+```
+
+### 步骤 3: 部署
+
+在项目根目录下运行以下命令即可将 Worker 部署到你的 Cloudflare 账户：
 
 ```bash
-# 添加执行权限
-chmod +x claude_proxy.sh
-
-# 运行脚本
-./claude_proxy.sh
+npx wrangler deploy
 ```
 
-### 3. 开始使用
+部署成功后，你将获得一个 `*.workers.dev` 的域名，这就是你的代理地址。
 
-配置完成后，即可在命令行中使用 Claude：
+## ⚙️ 配置 Claude Code CLI
+
+我们提供了一个方便的 `claude_proxy.sh` 脚本来自动配置你的 Claude Code CLI。
+
+### 如何使用:
+
+1.  **修改脚本**: 打开 `claude_proxy.sh` 文件，找到并修改以下变量：
+    - `API_KEY`: 你的 API 密钥。这个密钥将作为 `x-api-key` 发送给代理。
+    - `OPEN_AI_URL`: 你的代理服务地址和目标 API 地址的组合。例如，如果你的 Worker 部署在 `my-proxy.workers.dev`，你想访问 `api.groq.com/openai/v1`，则这里应填 `my-proxy.workers.dev/https/api.groq.com/openai/v1`。
+    - `OPEN_MODEL`: 你希望使用的默认模型名称。
+
+    **示例**:
+    ```bash
+    # claude_proxy.sh
+
+    # ...
+    readonly API_KEY="gsk_YourGroqAPIKey"
+    readonly OPEN_AI_URL="my-proxy.workers.dev/https/api.groq.com/openai/v1"
+    readonly OPEN_MODEL="llama3-70b-8192"
+    # ...
+    ```
+
+2.  **运行脚本**: 在终端中执行脚本。
+    ```bash
+    chmod +x ./claude_proxy.sh
+    ./claude_proxy.sh
+    ```
+
+3.  **完成**: 脚本会自动更新 `~/.claude/settings.json` 文件。现在，当你使用 `claude` 命令时，所有请求都将通过你部署的 Cloudflare Worker 代理。
+
+## 💻 本地开发
+
+如果你想在本地运行和测试此 Worker，可以使用以下命令：
 
 ```bash
-claude "Hello, world!"
+npx wrangler dev
 ```
 
-## 📁 文件结构
+这将在本地启动一个服务器（通常是 `http://localhost:8787`），你可以用它来进行开发和调试。
 
+**注意**: 在本地开发时，你需要创建一个 `.dev.vars` 文件来存储环境变量，否则 Worker 无法获取 `wrangler.toml` 中定义的 `[vars]`。
+
+**`.dev.vars` 文件示例**:
 ```
-~/.claude/
-├── settings.json           # 主配置文件
-└── settings.json.backup    # 自动备份文件
+HAIKU_MODEL_NAME="gpt-4o-mini"
+HAIKU_BASE_URL="https://api.your-provider.com/v1"
+HAIKU_API_KEY="sk-your-secret-key"
 ```
-
-## ⚙️ 配置说明
-
-| 参数 | 说明 | 示例 |
-|------|------|------|
-| `API_KEY` | 你的 API 密钥 | `sk-xxx...` |
-| `OPEN_AI_URL` | 代理服务地址 | `tbai.xin/v1` |
-| `OPEN_MODEL` | 使用的模型名称 | `gemini-1.5-pro` |
-
-## 🔧 工作原理
-
-1. **检查环境** - 验证必要的依赖是否安装
-2. **安装工具** - 如果未安装，自动安装 Claude Code
-3. **备份配置** - 保存现有配置文件
-4. **更新设置** - 使用 JSON 处理工具更新配置
-5. **验证完成** - 确认配置更新成功
-
-## ⚠️ 注意事项
-
-- 📝 请确保 API 密钥的安全性，不要在公共仓库中暴露
-- 🔄 脚本会修改 `~/.claude/settings.json` 文件
-- 💾 每次运行都会创建配置文件的备份
-- 🌐 确保代理服务地址可以正常访问
-
-## 🐛 故障排除
-
-### 
