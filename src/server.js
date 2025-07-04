@@ -14,20 +14,20 @@ function parsePathAndModel(pathname) {
     // Remove the mandatory suffix to isolate the dynamic parts of the path.
     const dynamicPath = pathname.substring(0, pathname.lastIndexOf('/v1/messages'));
     const parts = dynamicPath.split('/').filter(p => p);
-
-    if (parts.length < 2) {
-        return null;
-    }
+    console.log('parts',parts);
+    // if (parts.length < 2) {
+    //     return null;
+    // }
 
     const modelName = parts.pop();
     let baseUrl;
 
-    if (parts[0].toLowerCase() === 'http' || parts[0].toLowerCase() === 'https') {
-        const scheme = parts.shift();
-        baseUrl = `${scheme}://${parts.join('/')}`;
-    } else {
-        baseUrl = `https://${parts.join('/')}`;
-    }
+    // if (parts[0].toLowerCase() === 'http' || parts[0].toLowerCase() === 'https') {
+    //     const scheme = parts.shift();
+    //     baseUrl = `${scheme}://${parts.join('/')}`;
+    // } else {
+    //     baseUrl = `https://${parts.join('/')}`;
+    // }
 
     return { baseUrl, modelName };
 }
@@ -330,7 +330,6 @@ app.post('*/v1/messages', async (req, res) => {
         // Try to parse the base URL and model from the dynamic path
         const dynamicConfig = parsePathAndModel(req.path);
         if (dynamicConfig) {
-            targetBaseUrl = dynamicConfig.baseUrl;
             targetModelName = dynamicConfig.modelName;
         } else {
             targetModelName = process.env.HAIKU_MODEL_NAME;
