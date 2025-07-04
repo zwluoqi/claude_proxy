@@ -249,7 +249,7 @@ function handleStream(req, res, openaiResponse, model) {
                 const openaiChunk = JSON.parse(data);
                 const delta = openaiChunk.choices[0]?.delta;
                 if (!delta) continue;
-                console.log('stream delta',delta);
+                // console.log('stream delta',delta);
                 if (delta.content) {
                     sendEvent('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: delta.content } });
                 }
