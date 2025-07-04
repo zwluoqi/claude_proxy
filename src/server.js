@@ -3,6 +3,8 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 import { config } from 'dotenv';
 import sequelize from './config/database.js';
+import bcrypt from 'bcrypt';
+import User from './models/User.js';
 import UsageLog from './models/UsageLog.js';
 import ModelPrice from './models/ModelPrice.js';
 import adminRouter from './routes/admin.js';
@@ -16,7 +18,20 @@ config();
 sequelize.authenticate()
   .then(() => {
     console.log('Connection has been established successfully.');
-    sequelize.sync();
+    sequelize.sync().then(async () => {
+        const adminUser = await User.findOne({ where: { role: 'admin' } });
+        if (!adminUser) {
+          const hashedPassword = await bcrypt.hash('123456', 10);
+          await User.create({
+            username: 'admin',
+            password: hashedPassword,
+            role: 'admin',
+            quota: 999999,
+            status: 'active'
+          });
+          console.log('Default admin user created with password "123456".');
+        }
+    });
   })
   .catch(err => {
     console.error('Unable to connect to the database:', err);
@@ -315,6 +330,7 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 // Configure body parsers first
+app.use(express.static('public'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -404,17 +420,21 @@ app.post('*/v1/messages', async (req, res) => {
             const cost = modelPrice ? 
               (claudeResponse.usage.input_tokens * modelPrice.inputPrice + claudeResponse.usage.output_tokens * modelPrice.outputPrice) / 1000000 : 0;
 
-            await UsageLog.create({
-                requestTime: startTime,
-                tokenUsed: req.token.token,
-                userId: req.user.id,
-                tokenCount: claudeResponse.usage.input_tokens + claudeResponse.usage.output_tokens,
-                usageCount: 1,
-                cost: cost
-            });
+            // 只在有有效的 token 和 user 时记录使用日志
+            if (req.token?.token && req.user?.id) {
+                await UsageLog.create({
+                    requestTime: startTime,
+                    tokenUsed: req.token.token,
+                    UserId: req.user.id,  // 使用 UserId 而不是 userId
+                    tokenCount: claudeResponse.usage.input_tokens + claudeResponse.usage.output_tokens,
+                    usageCount: 1,
+                    cost: cost
+                });
 
-            req.user.quota -= cost;
-            await req.user.save();
+                // 更新用户配额
+                req.user.quota -= cost;
+                await req.user.save();
+            }
 
             res.json(claudeResponse);
         }
