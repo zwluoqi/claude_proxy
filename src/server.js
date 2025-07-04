@@ -2,8 +2,25 @@ import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
 import { config } from 'dotenv';
+import sequelize from './config/database.js';
+import UsageLog from './models/UsageLog.js';
+import ModelPrice from './models/ModelPrice.js';
+import adminRouter from './routes/admin.js';
+import redemptionRouter from './routes/redemption.js';
+import { authenticateToken } from './middleware/auth.js';
+import tokenRouter from './routes/token.js';
+import authRouter from './routes/auth.js';
 
 config();
+
+sequelize.authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.');
+    sequelize.sync();
+  })
+  .catch(err => {
+    console.error('Unable to connect to the database:', err);
+  });
 
 /**
  * Parses the model and base URL from the request pathname.
@@ -251,6 +268,9 @@ function handleStream(req, res, openaiResponse, model) {
                 if (!delta) continue;
                 // console.log('stream delta',delta);
                 if (delta.content) {
+                    // std output not use console.log
+                    process.stdout.write(delta.content);
+                    
                     sendEvent('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: delta.content } });
                 }
 
@@ -294,40 +314,53 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(express.json());
+// Configure body parsers first
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Configure CORS
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'Anthropic-Version'],
+    maxAge: 86400 // 24 hours
 }));
-// 打印所有请求日志
+
+// Request logging middleware
 app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}}`);
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
 });
 
-// Main endpoint
-app.post('*/v1/messages', async (req, res) => {
-    console.log('req.headers',req.headers);
-    const apiKey = req.headers['x-api-key'] || req.headers['authorization'].split(' ')[1];
-    if (!apiKey) {
-        return res.status(401).json({ error: 'The "x-api-key" header is missing.' });
+// Error handling middleware
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError || err.type === 'entity.too.large') {
+        return res.status(413).json({
+            error: 'Payload too large',
+            message: 'The request body exceeds the size limit of 50MB'
+        });
     }
+    console.error('Unexpected error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+});
 
+// Main endpoint
+app.use('/api/auth', authRouter);
+app.use('/api/tokens', tokenRouter);
+app.use('/api/redemption', redemptionRouter);
+app.use('/api/admin', adminRouter);
+app.post('*/v1/messages', authenticateToken, async (req, res) => {
     try {
+        const startTime = new Date();
         const claudeRequest = req.body;
 
         // Configuration Selection
-        let targetApiKey = apiKey;
+        let targetApiKey = req.headers['x-api-key'] || req.headers['authorization'].split(' ')[1];
         let targetModelName;
         let targetBaseUrl;
 
-        // Check for the "haiku" specific route
-        // const isHaiku = claudeRequest.model.toLowerCase().includes("haiku");
-
         targetBaseUrl = process.env.HAIKU_BASE_URL;
         targetApiKey = process.env.HAIKU_API_KEY;
-        // Try to parse the base URL and model from the dynamic path
         const dynamicConfig = parsePathAndModel(req.path);
         if (dynamicConfig) {
             targetModelName = dynamicConfig.modelName;
@@ -342,7 +375,7 @@ app.post('*/v1/messages', async (req, res) => {
         }
 
         const openaiRequest = convertClaudeToOpenAIRequest(claudeRequest, targetModelName);
-        console.log('openaiRequest',JSON.stringify(openaiRequest));
+        
         const openaiResponse = await fetch(`${targetBaseUrl}/chat/completions`, {
             method: "POST",
             headers: {
@@ -363,6 +396,26 @@ app.post('*/v1/messages', async (req, res) => {
         } else {
             const openaiResponseData = await openaiResponse.json();
             const claudeResponse = convertOpenAIToClaudeResponse(openaiResponseData, claudeRequest.model);
+            
+            const endTime = new Date();
+            const duration = endTime - startTime;
+            
+            const modelPrice = await ModelPrice.findOne({ where: { modelName: claudeRequest.model } });
+            const cost = modelPrice ? 
+              (claudeResponse.usage.input_tokens * modelPrice.inputPrice + claudeResponse.usage.output_tokens * modelPrice.outputPrice) / 1000000 : 0;
+
+            await UsageLog.create({
+                requestTime: startTime,
+                tokenUsed: req.token.token,
+                userId: req.user.id,
+                tokenCount: claudeResponse.usage.input_tokens + claudeResponse.usage.output_tokens,
+                usageCount: 1,
+                cost: cost
+            });
+
+            req.user.quota -= cost;
+            await req.user.save();
+
             res.json(claudeResponse);
         }
     } catch (e) {
