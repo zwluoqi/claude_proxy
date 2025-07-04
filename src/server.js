@@ -349,7 +349,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/tokens', tokenRouter);
 app.use('/api/redemption', redemptionRouter);
 app.use('/api/admin', adminRouter);
-app.post('*/v1/messages', authenticateToken, async (req, res) => {
+app.post('*/v1/messages', async (req, res) => {
     try {
         const startTime = new Date();
         const claudeRequest = req.body;

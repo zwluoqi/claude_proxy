@@ -21,13 +21,6 @@ const UsageLog = sequelize.define('UsageLog', {
       key: 'token'
     }
   },
-  userId: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: User,
-      key: 'id'
-    }
-  },
   tokenCount: {
     type: DataTypes.INTEGER
   },

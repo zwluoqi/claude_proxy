@@ -13,13 +13,6 @@ const Token = sequelize.define('Token', {
     unique: true,
     allowNull: false
   },
-  userId: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: User,
-      key: 'id'
-    }
-  },
   status: {
     type: DataTypes.ENUM('active', 'banned'),
     defaultValue: 'active'
