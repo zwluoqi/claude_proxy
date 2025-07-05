@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API令牌管理 - Claude Proxy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Claude Proxy</h3>
+      <button id="toggle-sidebar" class="toggle-btn">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <a href="/user/dashboard.html">
+          <i class="fas fa-tachometer-alt"></i> 仪表盘
+        </a>
+      </li>
+      <li>
+        <a href="/user/tokens.html" class="active">
+          <i class="fas fa-key"></i> API令牌管理
+        </a>
+      </li>
+      <li>
+        <a href="/user/usage.html">
+          <i class="fas fa-chart-line"></i> 使用统计
+        </a>
+      </li>
+      <li>
+        <a href="/user/redemption.html">
+          <i class="fas fa-ticket-alt"></i> 兑换码
+        </a>
+      </li>
+      <li>
+        <a href="#" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> 退出登录
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="main-content" id="main-content">
+    <div class="header">
+      <h1 class="page-title">API令牌管理</h1>
+      <div class="user-menu">
+        <div class="user-info">
+          <div class="user-name" id="username">加载中...</div>
+          <div class="user-role">用户</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>生成新令牌</h3>
+      </div>
+      <div class="card-body">
+        <form id="create-token-form" class="form">
+          <div class="form-group">
+            <label for="token-description">令牌描述（可选）</label>
+            <input type="text" id="token-description" class="form-control" placeholder="例如：应用名称或用途">
+          </div>
+          <button type="submit" class="btn">生成新令牌</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>我的令牌</h3>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>令牌</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tokens-list">
+              <tr>
+                <td colspan="4" class="text-center">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 显示新生成的令牌的模态框 -->
+    <div id="token-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>新令牌已生成</h2>
+          <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+          <p>这是您的新API令牌，请妥善保存，它只会显示一次：</p>
+          <div class="token-display">
+            <code id="new-token">-</code>
+            <button id="copy-token" class="btn-icon">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+          <p class="small text-muted">该令牌可用于通过我们的API调用Claude服务</p>
+        </div>
+        <div class="modal-footer">
+          <button id="close-modal" class="btn">我已保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth-check.js"></script>
+  <script src="/js/user-tokens.js"></script>
+</body>
+</html> 

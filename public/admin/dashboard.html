@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理员控制台 - Claude Proxy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Claude Proxy</h3>
+      <button id="toggle-sidebar" class="toggle-btn">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <a href="/admin/dashboard.html" class="active">
+          <i class="fas fa-tachometer-alt"></i> 仪表盘
+        </a>
+      </li>
+      <li>
+        <a href="/admin/users.html">
+          <i class="fas fa-users"></i> 用户管理
+        </a>
+      </li>
+      <li>
+        <a href="/admin/tokens.html">
+          <i class="fas fa-key"></i> 令牌管理
+        </a>
+      </li>
+      <li>
+        <a href="/admin/models.html">
+          <i class="fas fa-cog"></i> 模型配置
+        </a>
+      </li>
+      <li>
+        <a href="/admin/redemption.html">
+          <i class="fas fa-ticket-alt"></i> 兑换码管理
+        </a>
+      </li>
+      <li>
+        <a href="#" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> 退出登录
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="main-content" id="main-content">
+    <div class="header">
+      <h1 class="page-title">管理员仪表盘</h1>
+      <div class="user-menu">
+        <div class="user-info">
+          <div class="user-name" id="username">加载中...</div>
+          <div class="user-role">管理员</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-stats">
+      <div class="row">
+        <div class="stat-card card">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-details">
+            <h4>用户总数</h4>
+            <h2 id="total-users">-</h2>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon">
+            <i class="fas fa-key"></i>
+          </div>
+          <div class="stat-details">
+            <h4>令牌总数</h4>
+            <h2 id="total-tokens">-</h2>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon">
+            <i class="fas fa-exchange-alt"></i>
+          </div>
+          <div class="stat-details">
+            <h4>请求总数</h4>
+            <h2 id="total-requests">-</h2>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon">
+            <i class="fas fa-coins"></i>
+          </div>
+          <div class="stat-details">
+            <h4>总成本</h4>
+            <h2 id="total-cost">-</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>使用趋势</h3>
+        <div class="filter-group">
+          <select id="time-period">
+            <option value="day">今天</option>
+            <option value="week">本周</option>
+            <option value="month" selected>本月</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="usage-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>最新用户</h3>
+        <a href="/admin/users.html" class="btn btn-sm">查看全部</a>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>用户名</th>
+                <th>注册时间</th>
+                <th>状态</th>
+                <th>配额</th>
+              </tr>
+            </thead>
+            <tbody id="recent-users">
+              <tr>
+                <td colspan="4" class="text-center">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>最近请求</h3>
+        <a href="/admin/tokens.html" class="btn btn-sm">查看全部</a>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>用户</th>
+                <th>令牌</th>
+                <th>Token数量</th>
+                <th>费用</th>
+              </tr>
+            </thead>
+            <tbody id="recent-requests">
+              <tr>
+                <td colspan="5" class="text-center">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth-check.js"></script>
+  <script src="/js/admin-dashboard.js"></script>
+</body>
+</html> 

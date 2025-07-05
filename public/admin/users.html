@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户管理 - Claude Proxy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Claude Proxy</h3>
+      <button id="toggle-sidebar" class="toggle-btn">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <a href="/admin/dashboard.html">
+          <i class="fas fa-tachometer-alt"></i> 仪表盘
+        </a>
+      </li>
+      <li>
+        <a href="/admin/users.html" class="active">
+          <i class="fas fa-users"></i> 用户管理
+        </a>
+      </li>
+      <li>
+        <a href="/admin/tokens.html">
+          <i class="fas fa-key"></i> 令牌管理
+        </a>
+      </li>
+      <li>
+        <a href="/admin/models.html">
+          <i class="fas fa-cog"></i> 模型配置
+        </a>
+      </li>
+      <li>
+        <a href="/admin/redemption.html">
+          <i class="fas fa-ticket-alt"></i> 兑换码管理
+        </a>
+      </li>
+      <li>
+        <a href="#" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> 退出登录
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="main-content" id="main-content">
+    <div class="header">
+      <h1 class="page-title">用户管理</h1>
+      <div class="user-menu">
+        <div class="user-info">
+          <div class="user-name" id="username">加载中...</div>
+          <div class="user-role">管理员</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>创建新用户</h3>
+      </div>
+      <div class="card-body">
+        <form id="create-user-form" class="form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-username">用户名</label>
+              <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="new-username" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="new-password">密码</label>
+              <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="new-password" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="new-quota">初始配额</label>
+              <div class="input-group">
+                <i class="fas fa-coins"></i>
+                <input type="number" id="new-quota" value="0">
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn">创建用户</button>
+        </form>
+        <div class="message" id="create-message"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>用户列表</h3>
+        <div class="filter-group">
+          <input type="text" id="search-user" placeholder="搜索用户名" class="search-input">
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>用户名</th>
+                <th>注册时间</th>
+                <th>状态</th>
+                <th>配额</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="users-list">
+              <tr>
+                <td colspan="5" class="text-center">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button id="prev-page" class="btn-sm">上一页</button>
+          <span id="page-info">第 <span id="current-page">1</span> 页，共 <span id="total-pages">1</span> 页</span>
+          <button id="next-page" class="btn-sm">下一页</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 用户详情模态框 -->
+    <div id="user-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>用户详情</h2>
+          <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="edit-user-form" class="form">
+            <input type="hidden" id="edit-user-id">
+            <div class="form-group">
+              <label for="edit-username">用户名</label>
+              <input type="text" id="edit-username" disabled>
+            </div>
+            <div class="form-group">
+              <label for="edit-status">状态</label>
+              <select id="edit-status">
+                <option value="active">活跃</option>
+                <option value="banned">禁用</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="edit-quota">配额</label>
+              <input type="number" id="edit-quota">
+            </div>
+            <div class="form-group">
+              <label for="edit-password">重置密码（留空则不修改）</label>
+              <input type="password" id="edit-password">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button id="save-user" class="btn">保存更改</button>
+          <button id="cancel-edit" class="btn btn-secondary">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth-check.js"></script>
+  <script src="/js/admin-users.js"></script>
+</body>
+</html> 

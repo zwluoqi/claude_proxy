@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>兑换码 - Claude Proxy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Claude Proxy</h3>
+      <button id="toggle-sidebar" class="toggle-btn">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <a href="/user/dashboard.html">
+          <i class="fas fa-tachometer-alt"></i> 仪表盘
+        </a>
+      </li>
+      <li>
+        <a href="/user/tokens.html">
+          <i class="fas fa-key"></i> API令牌管理
+        </a>
+      </li>
+      <li>
+        <a href="/user/usage.html">
+          <i class="fas fa-chart-line"></i> 使用统计
+        </a>
+      </li>
+      <li>
+        <a href="/user/redemption.html" class="active">
+          <i class="fas fa-ticket-alt"></i> 兑换码
+        </a>
+      </li>
+      <li>
+        <a href="#" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> 退出登录
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="main-content" id="main-content">
+    <div class="header">
+      <h1 class="page-title">兑换码</h1>
+      <div class="user-menu">
+        <div class="user-info">
+          <div class="user-name" id="username">加载中...</div>
+          <div class="user-role">用户</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>兑换额度</h3>
+      </div>
+      <div class="card-body">
+        <form id="redeem-form" class="form">
+          <div class="form-group">
+            <label for="redemption-code">输入兑换码</label>
+            <div class="input-group">
+              <i class="fas fa-ticket-alt"></i>
+              <input type="text" id="redemption-code" placeholder="请输入您的兑换码" required>
+            </div>
+          </div>
+          <button type="submit" class="btn">兑换</button>
+        </form>
+        <div class="message" id="redemption-message"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>兑换记录</h3>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>兑换时间</th>
+                <th>兑换码</th>
+                <th>额度</th>
+              </tr>
+            </thead>
+            <tbody id="redemption-history">
+              <tr>
+                <td colspan="3" class="text-center">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth-check.js"></script>
+  <script src="/js/user-redemption.js"></script>
+</body>
+</html> 

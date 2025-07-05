@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户控制台 - Claude Proxy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Claude Proxy</h3>
+      <button id="toggle-sidebar" class="toggle-btn">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <a href="/user/dashboard.html" class="active">
+          <i class="fas fa-tachometer-alt"></i> 仪表盘
+        </a>
+      </li>
+      <li>
+        <a href="/user/tokens.html">
+          <i class="fas fa-key"></i> API令牌管理
+        </a>
+      </li>
+      <li>
+        <a href="/user/usage.html">
+          <i class="fas fa-chart-line"></i> 使用统计
+        </a>
+      </li>
+      <li>
+        <a href="/user/redemption.html">
+          <i class="fas fa-ticket-alt"></i> 兑换码
+        </a>
+      </li>
+      <li>
+        <a href="#" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> 退出登录
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="main-content" id="main-content">
+    <div class="header">
+      <h1 class="page-title">仪表盘</h1>
+      <div class="user-menu">
+        <div class="user-info">
+          <div class="user-name" id="username">加载中...</div>
+          <div class="user-role">用户</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-stats">
+      <div class="row">
+        <div class="card stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-coins"></i>
+          </div>
+          <div class="stat-details">
+            <h4>可用额度</h4>
+            <h2 id="user-quota">-</h2>
+          </div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-key"></i>
+          </div>
+          <div class="stat-details">
+            <h4>API令牌数量</h4>
+            <h2 id="token-count">-</h2>
+          </div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-exchange-alt"></i>
+          </div>
+          <div class="stat-details">
+            <h4>总请求次数</h4>
+            <h2 id="request-count">-</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>最近使用记录</h3>
+        <a href="/user/usage.html" class="btn btn-sm">查看全部</a>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>令牌</th>
+                <th>Token数量</th>
+                <th>使用次数</th>
+                <th>费用</th>
+              </tr>
+            </thead>
+            <tbody id="recent-usage">
+              <tr>
+                <td colspan="5" class="text-center">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth-check.js"></script>
+  <script src="/js/user-dashboard.js"></script>
+</body>
+</html> 
